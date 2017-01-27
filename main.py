@@ -57,7 +57,7 @@ def copy_picture_for_wallpaper():
                 break
             print('name: {}, id: {}'.format(item['name'], item['id']))
             new_file_body = {
-                'name': '{0:02d}_{1}.jpg'.format((len(items) if len(items) < 5 else 5) - i, item['name']),
+                'name': '{0:02d}_{1}'.format((len(items) if len(items) < 5 else 5) - i, item['name']),
                 'parents': ['0B7BAGrsUmzTeOGE4ekc5a29yMlU'],
             }
             print('copy {}'.format(item['name']))
