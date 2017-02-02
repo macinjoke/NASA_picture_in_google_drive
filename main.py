@@ -45,24 +45,36 @@ def save_from_remote_to_local(url, saved_file):
 
 def copy_picture_for_wallpaper():
     results = service.files().list(q="'0B7BAGrsUmzTea0FqcWZ0eEYxdXM' in parents and trashed = false",
-                                   orderBy='createdTime desc').execute()
-    items = results.get('files', [])
-    if not items:
+                                   orderBy='createdTime').execute()
+    uploaded_items = results.get('files', [])
+    if not uploaded_items:
         print('No files found.')
     else:
-        print('{} files were founded:'.format(len(items)))
-        for i, item in enumerate(items):
-            # ５つまでしか貯めない
-            if i == 5:
-                break
-            print('name: {}, id: {}'.format(item['name'], item['id']))
+        print('{} files were founded:'.format(len(uploaded_items)))
+        results = service.files().list(q="'0B7BAGrsUmzTeOGE4ekc5a29yMlU' in parents and trashed = false",
+                                       orderBy='createdTime').execute()
+        copied_items = results.get('files', [])
+        # コピー用フォルダの中の画像ファイルが5つ以下なら、5つになるまでコピーをする。
+        if len(copied_items) < 5:
+            for item in uploaded_items[-(5 - len(copied_items)):]:
+                print('copy `name: {}, id: {}`'.format(item['name'], item['id']))
+                new_file_body = {
+                    'name': item['name'],
+                    'parents': ['0B7BAGrsUmzTeOGE4ekc5a29yMlU'],
+                }
+                service.files().copy(fileId=item['id'], body=new_file_body).execute()
+                print('copied')
+        # コピー用フォルダの中の画像ファイルが5つなら、一番古い画像を1つ削除し、新しい画像を1つコピーする
+        else:
+            service.files().delete(fileId=copied_items[0]['id']).execute()
+            print('deleted `name: {}, id: {}`'.format(copied_items[0]['name'], copied_items[0]['id']))
+            item = uploaded_items[-1:][0]
+            print('copy `name: {}, id: {}`'.format(item['name'], item['id']))
             new_file_body = {
-                'name': '{0:02d}_{1}'.format((len(items) if len(items) < 5 else 5) - i, item['name']),
+                'name': item['name'],
                 'parents': ['0B7BAGrsUmzTeOGE4ekc5a29yMlU'],
             }
-            print('copy {}'.format(item['name']))
             service.files().copy(fileId=item['id'], body=new_file_body).execute()
-            print('copied')
 
 
 if __name__ == '__main__':
