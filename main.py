@@ -9,7 +9,8 @@ from googleapiclient.http import MediaFileUpload
 from api_keys import NASA_API_KEY
 
 
-FOLDER_ID = '0B7BAGrsUmzTea0FqcWZ0eEYxdXM'
+UPLOAD_FOLDER_ID = '0B7BAGrsUmzTea0FqcWZ0eEYxdXM'
+COPIED_FOLDER_ID = '0B7BAGrsUmzTeOGE4ekc5a29yMlU'
 MIME_TYPE = 'image/jpeg'
 SAVED_FILE = os.path.expanduser('~/.ghq/github.com/tonkatu05/NASA_picture_in_google_drive/astronomy.jpg')
 NASA_API_URL = 'https://api.nasa.gov/planetary/apod?api_key={}'.format(NASA_API_KEY)
@@ -25,7 +26,7 @@ def upload_file(file, file_name):
     body = {
         'name': file_name,
         'mimeType': MIME_TYPE,
-        'parents': [FOLDER_ID],
+        'parents': [UPLOAD_FOLDER_ID],
     }
     service.files().create(body=body, media_body=media_body).execute()
     print('uploaded')
@@ -44,14 +45,14 @@ def save_from_remote_to_local(url, saved_file):
 
 
 def copy_picture_for_wallpaper():
-    results = service.files().list(q="'0B7BAGrsUmzTea0FqcWZ0eEYxdXM' in parents and trashed = false",
+    results = service.files().list(q="'{}' in parents and trashed = false".format(UPLOAD_FOLDER_ID),
                                    orderBy='createdTime').execute()
     uploaded_items = results.get('files', [])
     if not uploaded_items:
         print('No files found.')
     else:
         print('{} files were founded:'.format(len(uploaded_items)))
-        results = service.files().list(q="'0B7BAGrsUmzTeOGE4ekc5a29yMlU' in parents and trashed = false",
+        results = service.files().list(q="'{}' in parents and trashed = false".format(COPIED_FOLDER_ID),
                                        orderBy='createdTime').execute()
         copied_items = results.get('files', [])
         # コピー用フォルダの中の画像ファイルが5つ以下なら、5つになるまでコピーをする。
@@ -60,7 +61,7 @@ def copy_picture_for_wallpaper():
                 print('copy `name: {}, id: {}`'.format(item['name'], item['id']))
                 new_file_body = {
                     'name': item['name'],
-                    'parents': ['0B7BAGrsUmzTeOGE4ekc5a29yMlU'],
+                    'parents': [COPIED_FOLDER_ID],
                 }
                 service.files().copy(fileId=item['id'], body=new_file_body).execute()
                 print('copied')
@@ -72,7 +73,7 @@ def copy_picture_for_wallpaper():
             print('copy `name: {}, id: {}`'.format(item['name'], item['id']))
             new_file_body = {
                 'name': item['name'],
-                'parents': ['0B7BAGrsUmzTeOGE4ekc5a29yMlU'],
+                'parents': [COPIED_FOLDER_ID],
             }
             service.files().copy(fileId=item['id'], body=new_file_body).execute()
 
